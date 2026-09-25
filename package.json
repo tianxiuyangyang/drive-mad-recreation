@@ -1,0 +1,14 @@
+{
+  "name": "drive-mad-level-1-recreation",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --check server.mjs"
+  },
+  "dependencies": {
+    "planck": "^1.5.0",
+    "three": "^0.186.0"
+  }
+}

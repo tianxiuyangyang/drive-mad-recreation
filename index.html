@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#00a2f5">
+  <title>Drive Mad — Level 1</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2300a5fa'/%3E%3Cpath d='M10 27h9V16h25v11h10v21H10z' fill='%23ffd522'/%3E%3Cpath d='M25 21h13v10H25z' fill='%23394251'/%3E%3Cpath d='M11 40h14v17H11zm28 0h14v17H39z' fill='%23272b37'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+ <main id="shell" class="game-shell" aria-label="Drive Mad 第一关">
+  <canvas id="game" aria-label="黄色越野车驾驶游戏" tabindex="0"></canvas>
+  <div id="hud" class="hud">
+   <button id="pause" class="icon-button pause" aria-label="暂停游戏" title="暂停 · P"><svg viewBox="0 0 44 44"><rect x="9" y="7" width="10" height="30" rx="4"/><rect x="25" y="7" width="10" height="30" rx="4"/></svg></button>
+   <div class="level-heading"><span id="levelNumber">1</span><span id="levelTitle">First Gear</span></div>
+   <div class="utility">
+    <button id="restart" class="icon-button" aria-label="重新开始" title="重新开始 · R"><svg viewBox="0 0 44 44"><path d="M11 17a13 13 0 1 1-1 12" fill="none" stroke-linecap="round" stroke-width="5"/><path d="M7 6v14h14z" stroke="none"/></svg></button>
+    <button id="sound" class="icon-button" aria-label="关闭声音" aria-pressed="false" title="声音"><svg viewBox="0 0 44 44"><path d="M5 17h8L24 8v28L13 27H5z"/><path d="M29 15q8 7 0 14m6-20q14 13 0 26" fill="none" stroke-width="3.5" stroke-linecap="round"/></svg></button>
+    <button id="fullscreen" class="icon-button" aria-label="全屏" title="全屏 · F"><svg viewBox="0 0 44 44"><path d="M7 17V7h10m10 0h10v10M7 27v10h10m10 0h10V27" fill="none" stroke-width="4" stroke-linejoin="round"/></svg></button>
+   </div>
+   <div id="hint" class="tip">HOLD TO DRIVE</div>
+   <button id="back" class="drive-button back" aria-label="按住倒车或刹车"><svg viewBox="0 0 56 80"><path d="M40 10 11 40l29 30"/></svg></button>
+   <button id="gas" class="drive-button gas" aria-label="按住前进"><svg viewBox="0 0 56 80"><path d="m16 10 29 30-29 30"/></svg></button>
+   <button id="rocket" class="rocket-button" aria-label="自动火箭推进器" title="第三关：按住前进键自动启动">🚀</button>
+   <div class="gold-track" aria-hidden="true"><i id="goldFill"></i></div>
+   <div class="keyboard-hint">← →&nbsp; / &nbsp;A D<span>驾驶</span><b>R</b><span>重开</span><b>P</b><span>暂停</span><output id="timer">00:00.0</output></div>
+   <output id="status" class="sr-only" aria-live="polite" data-status="ready">准备开始</output>
+  </div>
+  <section id="mainMenu" class="main-menu" aria-label="关卡选择">
+   <div class="menu-sky" aria-hidden="true"><i class="menu-cloud cloud-a"></i><i class="menu-cloud cloud-b"></i><i class="menu-mountain mountain-a"></i><i class="menu-mountain mountain-b"></i><i class="menu-road"></i><i class="menu-truck"><b></b><em></em></i></div>
+   <div class="menu-topline"><span>FANCADE STYLE</span><span>第一世界 · 草地峡谷</span></div>
+   <div class="menu-brand"><small>PHYSICS DRIVE</small><strong>DRIVE <b>MAD</b></strong><em>一路保持平衡</em></div>
+   <div class="level-panel">
+    <div class="level-panel-head"><span>选择关卡</span><small>1 / 6</small></div>
+    <div class="level-grid">
+     <button class="level-card selected" id="level1" data-level="1"><span class="level-number">01</span><span class="level-name">FIRST GEAR</span><span class="level-desc">草地起点</span><i>▶</i></button>
+     <button class="level-card" id="level2" data-level="2"><span class="level-number">02</span><span class="level-name">RAMP UP</span><span class="level-desc">连续坡道挑战</span><i>▶</i></button>
+     <button class="level-card" id="level3" data-level="3"><span class="level-number">03</span><span class="level-name">BACK UP</span><span class="level-desc">高低落差赛道</span><i>▶</i></button>
+     <button class="level-card locked" disabled><span class="level-number">04</span><span class="level-name">HIGH ROAD</span><span class="level-desc">完成上一关解锁</span><i>⌁</i></button>
+     <button class="level-card locked" disabled><span class="level-number">05</span><span class="level-name">FLIP SIDE</span><span class="level-desc">完成上一关解锁</span><i>⌁</i></button>
+     <button class="level-card locked" disabled><span class="level-number">06</span><span class="level-name">SUMMIT</span><span class="level-desc">完成上一关解锁</span><i>⌁</i></button>
+    </div>
+    <button class="menu-start" id="menuStart"><span>开始第一关</span><b>→</b></button>
+   </div>
+   <div class="menu-foot"><span>ENTER 开始&nbsp; · &nbsp;← → / A D 驾驶</span><span>保持车身平衡 · 安全到达终点</span></div>
+  </section>
+  <section id="modal" class="modal" aria-label="游戏菜单" aria-hidden="true" hidden>
+   <div class="modal-content">
+    <div class="modal-emblem">★</div>
+    <h1 id="modalTitle">PAUSED</h1>
+    <p id="modalText">第一关 · First Gear</p>
+    <button id="primary" class="play-button">继续游戏</button>
+    <button id="secondary" class="text-button">重新开始</button>
+   </div>
+  </section>
+ </main>
+ <script type="module" src="./game.mjs"></script>
+</body>
+</html>
