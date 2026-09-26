@@ -28,17 +28,26 @@ const COURSE_1 = Object.freeze({
 // The second and third tracks keep the same compact physics model as the
 // original first track, but introduce ramps, drops and short flat sections so
 // they feel like proper Drive Mad stages instead of menu placeholders.
+const COURSE_2_PARTS = Object.freeze([
+  Object.freeze([
+    {x:-4,y:0},{x:8,y:0},{x:12,y:.3},{x:15,y:1.2},{x:18,y:1.2},
+  ].map(Object.freeze)),
+  Object.freeze([
+    // The far bank begins after all three rising discs.
+    {x:51.0,y:4.2},{x:54,y:3.2},{x:57,y:1.7},{x:60,y:.65},{x:62,y:0},
+  ].map(Object.freeze)),
+]);
 const COURSE_2 = Object.freeze({
   id: 2,
-  title: 'Ramp Up',
-  startX: 0, finishX: 54, minX: -4, maxX: 62, waterY: -2.4, finishTop: 3.45,
+  title: 'Windmill Crossing',
+  startX: 0, finishX: 59, minX: -4, maxX: 62, waterY: -2.4, finishTop: 3.45,
   wheelRadius: .63, axleHalfWidth: 1.25,
-  terrain: Object.freeze([
-    {x:-4,y:0},{x:4,y:0},{x:5,y:.7},{x:7,y:.7},{x:8,y:0},
-    {x:12,y:0},{x:13,y:.8},{x:15,y:1.6},{x:17,y:1.6},{x:18,y:.6},
-    {x:20,y:.6},{x:21,y:1.3},{x:23,y:1.3},{x:24,y:.2},{x:28,y:.2},
-    {x:29,y:1.0},{x:31,y:1.0},{x:32,y:0},{x:38,y:0},{x:39,y:.8},{x:42,y:.8},{x:43,y:0},{x:62,y:0},
-  ].map(Object.freeze)),
+  terrain: Object.freeze(COURSE_2_PARTS.flat()), terrainParts: COURSE_2_PARTS,
+  windmills: Object.freeze([
+    Object.freeze({x:24,y:1.35,halfLength:7.0,thickness:.58,speed:-.22,startAngle:.45}),
+    Object.freeze({x:36,y:2.85,halfLength:7.0,thickness:.58,speed:-.44,startAngle:.05}),
+    Object.freeze({x:48,y:4.35,halfLength:7.0,thickness:.58,speed:-.66,startAngle:-.3}),
+  ]),
 });
 
 const COURSE_3_PARTS = Object.freeze([
@@ -105,6 +114,7 @@ export class VehiclePhysics {
     this.rocketFuel = this.course.id === 3 ? 2.4 : 0;
     this.rocketActive = false;
     this.groundContacts = [new Set(), new Set()];
+    this.windmillContacts = [new Set(), new Set()];
     this.roofContacts = new Set();
 
     const ground = this.world.createBody();
@@ -114,6 +124,20 @@ export class VehiclePhysics {
         friction: 1.2, restitution: 0, userData: { kind: 'ground' },
       });
     }
+    this.windmills = [];
+    const windmillConfigs = course.windmills || (course.windmill ? [course.windmill] : []);
+    for (const config of windmillConfigs) {
+      const {x,y,halfLength,thickness,startAngle} = config;
+      const windmill = this.world.createKinematicBody({position:Vec2(x,y),angle:startAngle});
+      for (const angle of [0,Math.PI/2]) {
+        windmill.createFixture(Box(halfLength,thickness/2,Vec2(0,0),angle), {
+          friction:2.2,restitution:0,userData:{kind:'windmill'},
+        });
+      }
+      this.windmills.push(windmill);
+    }
+    // Keep the singular alias for older scene integrations and diagnostics.
+    this.windmill = this.windmills[0] || null;
 
     this.body = this.world.createDynamicBody({
       position: Vec2(course.startX, 1.2),
@@ -178,12 +202,17 @@ export class VehiclePhysics {
   updateContact(contact, touching) {
     const a = contact.getFixtureA().getUserData();
     const b = contact.getFixtureB().getUserData();
-    const vehicle = a?.kind === 'ground' ? b : b?.kind === 'ground' ? a : null;
-    if (!vehicle) return;
+    const surface = a?.kind === 'ground' || a?.kind === 'windmill' ? a : b?.kind === 'ground' || b?.kind === 'windmill' ? b : null;
+    const vehicle = surface === a ? b : surface === b ? a : null;
+    if (!vehicle || !surface) return;
     let contacts;
-    if (vehicle.kind === 'wheel') contacts = this.groundContacts[vehicle.index];
-    if (vehicle.kind === 'roof') contacts = this.roofContacts;
+    if (vehicle.kind === 'wheel') contacts = surface.kind === 'windmill' ? this.windmillContacts[vehicle.index] : this.groundContacts[vehicle.index];
+    if (vehicle.kind === 'roof' && surface.kind === 'ground') contacts = this.roofContacts;
     if (contacts) touching ? contacts.add(contact) : contacts.delete(contact);
+  }
+
+  wheelGrounded(index) {
+    return this.groundContacts[index].size > 0 || this.windmillContacts[index].size > 0;
   }
 
   step(dt, throttle = 0, rocket = false) {
@@ -204,10 +233,12 @@ export class VehiclePhysics {
   }
 
   integrate(throttle, rocket = false) {
+    const windmillConfigs = this.course.windmills || (this.course.windmill ? [this.course.windmill] : []);
+    this.windmills.forEach((windmill, index) => windmill.setAngularVelocity(windmillConfigs[index].speed));
     const hasInput = Math.abs(throttle) > 0.01;
     const driveTorque = throttle < 0 ? VEHICLE.motorTorque * 5 : VEHICLE.motorTorque;
     for (let i = 0; i < this.joints.length; i++) {
-      const grounded = this.groundContacts[i].size > 0;
+      const grounded = this.wheelGrounded(i);
       const joint = this.joints[i];
       const powered = i === 0; // rear axle only; the front axle freewheels
       // A motor applies equal and opposite torques to wheel and chassis. Its
@@ -218,10 +249,19 @@ export class VehiclePhysics {
     }
     // A short drivetrain push keeps reverse responsive with only the rear axle
     // powered, while remaining grounded so airborne momentum is unchanged.
-    if (throttle < -0.01 && this.groundContacts[0].size > 0) {
+    if (throttle < -0.01 && this.wheelGrounded(0)) {
       this.body.applyForceToCenter(Vec2(-14, 0), true);
     }
     this.rocketActive = this.course.id === 3 && rocket && this.rocketFuel > 0;
+    // The rotating blade transfers momentum into the chassis. A small
+    // stabilizing torque while a wheel is on the blade keeps the exit
+    // readable and gives the far bank a fair landing angle.
+    if (this.windmills.length && (this.windmillContacts[0].size || this.windmillContacts[1].size)) {
+      const angle = normalizedAngle(this.body.getAngle());
+      this.body.applyTorque(clamp(-angle * 250, -90, 90), true);
+      this.body.setAngularVelocity(clamp(this.body.getAngularVelocity(), -1.65, 1.65));
+      if (this.body.getLinearVelocity().x < 1.2) this.body.applyForceToCenter(Vec2(110, 0), true);
+    }
     if (this.rocketActive) {
       const angle = this.body.getAngle();
       const forward = Vec2(Math.cos(angle), Math.sin(angle));
@@ -257,7 +297,7 @@ export class VehiclePhysics {
   getState() {
     const position = this.body.getPosition();
     const velocity = this.body.getLinearVelocity();
-    const groundedWheels = this.groundContacts.map(contacts => contacts.size > 0);
+    const groundedWheels = this.groundContacts.map((contacts, i) => contacts.size > 0 || this.windmillContacts[i].size > 0);
     return {
       x: position.x,
       y: position.y,
@@ -277,6 +317,8 @@ export class VehiclePhysics {
       crashReason: this.crashReason,
       rocketFuel: this.rocketFuel,
       rocketActive: this.rocketActive,
+      windmillAngle: this.windmill?.getAngle() ?? null,
+      windmillAngles: this.windmills.map(windmill => windmill.getAngle()),
     };
   }
 }

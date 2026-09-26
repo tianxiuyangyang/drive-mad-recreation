@@ -197,11 +197,44 @@ export class SceneView {
       const h = Math.max(.2, point.y + 1.45);
       block(this.world, point.x, point.y - h / 2 - .08, 0, .35, h, 2.78, '#bd7784');
     }
+    const windmillConfigs = this.course.windmills || (this.course.windmill ? [this.course.windmill] : []);
+    this.windmillVisuals = windmillConfigs.map(config => this.createWindmill(config));
     this.makeStartRail(this.course.startX - 3.3);
     this.makeFinish();
     this.makeArrow(this.course.finishX - 2.4, 0, -1.55);
     this.island(min - .3, min + 2.8);
     this.island(max - 2.8, max + .3);
+  }
+
+  createWindmill(config) {
+    const {x, y, halfLength} = config;
+    const rig = new THREE.Group();
+    rig.position.set(x, y, 0);
+    this.world.add(rig);
+    block(rig, 0, -2.15, 0, .55, 4.3, .55, '#6e5964');
+    block(rig, 0, -4.25, 0, 1.25, .22, 1.25, '#a97079');
+    const hub = new THREE.Group();
+    // The visual hub shares the exact center used by the physics body.
+    hub.position.y = 0;
+    rig.add(hub);
+    const disc = new THREE.Mesh(
+      new THREE.CylinderGeometry(halfLength * .92, halfLength * .92, .16, 32),
+      new THREE.MeshBasicMaterial({ color: '#d67b82', transparent: true, opacity: .28, depthWrite: false }),
+    );
+    disc.rotation.x = Math.PI / 2;
+    disc.position.z = -.38;
+    hub.add(disc);
+    block(hub, 0, 0, 0, .72, .72, .72, '#f4c935');
+    const armMaterials = ['#c36d76', '#d88b80', '#b95e70', '#e3a092'];
+    for (let i = 0; i < 4; i++) {
+      const arm = new THREE.Group();
+      arm.rotation.z = i * Math.PI / 2;
+      hub.add(arm);
+      block(arm, halfLength / 2, 0, 0, halfLength, .28, .62, armMaterials[i]);
+      block(arm, halfLength - .7, .16, 0, 1.4, .22, .88, '#f4c35a');
+      block(arm, halfLength - .7, -.16, 0, 1.4, .16, .88, '#9d5c6d');
+    }
+    return hub;
   }
 
   island(from,to){
@@ -381,6 +414,10 @@ export class SceneView {
       this.rocketFlame.scale.set(pulse, .88 + Math.sin(this.clock * 31) * .12, 1);
       this.rocketOuter.material.opacity = .6 + Math.sin(this.clock * 37) * .16;
     }
+    const windmillAngles = state.windmillAngles || (state.windmillAngle === null ? [] : [state.windmillAngle]);
+    this.windmillVisuals?.forEach((hub, index) => {
+      if (windmillAngles[index] !== undefined) hub.rotation.z = windmillAngles[index];
+    });
     state.wheels.forEach((w,i)=>{
       this.wheelMeshes[i].forEach((mesh,j)=>{mesh.position.set(w.x,w.y,j===0?-1.02:1.02);mesh.rotation.z=w.angle;});
       this.axles[i].position.set(w.x,w.y,0);
