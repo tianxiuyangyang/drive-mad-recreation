@@ -268,7 +268,7 @@ function finish() {
     view.crash();
     audio.crash();
     const message = state.crashReason === 'roof' ? '车顶碰到了地面。试着调整油门，保持平衡。' : '掉出赛道了。回到起点，再试一次！';
-    setModal('crashed', '再试一次！', message, '重新开始', '看看赛道');
+    setModal('crashed', '再试一次！', message, '重新开始', '返回主菜单');
   }
 }
 
@@ -366,7 +366,7 @@ ui.primary.addEventListener('click', () => {
   else reset();
 });
 ui.secondary.addEventListener('click', () => {
-  if (modalMode === 'paused' || modalMode === 'won') showMainMenu();
+  if (modalMode === 'paused' || modalMode === 'won' || modalMode === 'crashed') showMainMenu();
   else setModal(null);
 });
 ui.sound.addEventListener('click', () => {

@@ -44,9 +44,9 @@ const COURSE_2 = Object.freeze({
   wheelRadius: .63, axleHalfWidth: 1.25,
   terrain: Object.freeze(COURSE_2_PARTS.flat()), terrainParts: COURSE_2_PARTS,
   windmills: Object.freeze([
-    Object.freeze({x:24,y:1.35,halfLength:7.0,thickness:.58,speed:-.22,startAngle:.45}),
-    Object.freeze({x:36,y:2.85,halfLength:7.0,thickness:.58,speed:-.44,startAngle:.05}),
-    Object.freeze({x:48,y:4.35,halfLength:7.0,thickness:.58,speed:-.66,startAngle:-.3}),
+    Object.freeze({x:24,y:1.35,halfLength:7.0,thickness:.58,speed:-.66,startAngle:.45}),
+    Object.freeze({x:36,y:2.85,halfLength:7.0,thickness:.58,speed:-1.32,startAngle:.05}),
+    Object.freeze({x:48,y:4.35,halfLength:7.0,thickness:.58,speed:-1.98,startAngle:-.3}),
   ]),
 });
 
@@ -85,7 +85,7 @@ export const VEHICLE = Object.freeze({
   cabinHeight: 0.6,
   suspensionFrequency: 5,
   suspensionDamping: 0.8,
-  motorSpeed: 12,
+  motorSpeed: 24,
   motorTorque: 18,
 });
 
