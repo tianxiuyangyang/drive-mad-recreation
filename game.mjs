@@ -1,11 +1,11 @@
-import { VehiclePhysics, getCourse } from './physics.mjs';
-import { SceneView } from './scene.mjs';
+import { VehiclePhysics, getCourse } from './physics.mjs?v=20261002-58';
+import { SceneView } from './scene.mjs?v=20261002-58';
 
 const byId = id => document.getElementById(id);
 const ui = Object.fromEntries([
-  'shell', 'game', 'pause', 'restart', 'sound', 'fullscreen', 'back', 'gas', 'rocket', 'modal',
-  'modalTitle', 'modalText', 'primary', 'secondary', 'hint', 'levelTitle',
-  'timer', 'goldFill', 'status', 'mainMenu', 'menuStart', 'level1', 'level2', 'level3', 'levelNumber',
+  'shell', 'game', 'pause', 'restart', 'sound', 'fullscreen', 'back', 'gas', 'rocket', 'modal', 'testModeBadge',
+  'modalTitle', 'modalText', 'primary', 'secondary', 'nextLevel', 'hint', 'levelTitle', 'soundPanel', 'musicVolume', 'fxVolume',
+  'timer', 'goldFill', 'status', 'mainMenu', 'menuStart', 'level1', 'level2', 'level3', 'level4', 'level5', 'level6', 'levelNumber', 'menuMusic',
 ].map(id => [id, byId(id)]));
 
 const physics = new VehiclePhysics();
@@ -17,7 +17,14 @@ const reverseKeys = new Set(['ArrowLeft', 'ArrowDown', 'a', 's']);
 const statusLabels = {
   ready: '已就绪', running: '进行中', paused: '已暂停', won: '已通关', crashed: '已翻车',
 };
-const GOLD_TIME_LIMIT = 10;
+const GOLD_TIME_LIMIT = 22;
+const CAR_SKINS = Object.freeze({
+  yellow: Object.freeze({label:'经典黄',colors:Object.freeze({primary:'#ffd42a',secondary:'#ffcf21',dark:'#d99a16',light:'#ffe12c',highlight:'#fff383'})}),
+  red: Object.freeze({label:'烈焰红',colors:Object.freeze({primary:'#ef4f45',secondary:'#d83d37',dark:'#a92c2c',light:'#ff7665',highlight:'#ffb6a2'})}),
+  blue: Object.freeze({label:'海湾蓝',colors:Object.freeze({primary:'#2e8df0',secondary:'#2677cf',dark:'#17579e',light:'#58b6ff',highlight:'#b8e4ff'})}),
+  green: Object.freeze({label:'森林绿',colors:Object.freeze({primary:'#49c85b',secondary:'#36a948',dark:'#237b39',light:'#72dd77',highlight:'#c7f0a0'})}),
+  purple: Object.freeze({label:'电光紫',colors:Object.freeze({primary:'#9b63ee',secondary:'#814bd2',dark:'#5b359f',light:'#bd8cff',highlight:'#e6caff'})}),
+});
 const initialHint = ui.hint?.textContent || '按住 → 或 D 前进';
 let state = physics.getState();
 let paused = false;
@@ -26,8 +33,13 @@ let lastTime = null;
 let previousStatus = state.status;
 let resizePending = false;
 let soundEnabled = true;
+let fxVolume = 0.32;
+let musicVolume = 0.62;
 let inMenu = true;
 let currentLevel = 1;
+let currentSkin = 'yellow';
+let testMode = false;
+let pPresses = [];
 
 // Everything is synthesized locally and only started by a user gesture.
 class GameAudio {
@@ -41,7 +53,7 @@ class GameAudio {
     if (!this.context) {
       this.context = new AudioContext();
       this.master = this.context.createGain();
-      this.master.gain.value = soundEnabled ? 0.32 : 0;
+      this.master.gain.value = soundEnabled ? fxVolume : 0;
       this.master.connect(this.context.destination);
       this.engineGain = this.context.createGain();
       this.engineGain.gain.value = 0;
@@ -59,8 +71,10 @@ class GameAudio {
     if (this.context.state === 'suspended') this.context.resume().catch(() => {});
   }
 
-  mute(muted) {
-    if (this.context) this.master.gain.setTargetAtTime(muted ? 0 : 0.32, this.context.currentTime, 0.03);
+  setVolume(value) {
+    fxVolume = Math.max(0, Math.min(1, Number(value) || 0));
+    soundEnabled = fxVolume > 0;
+    if (this.context) this.master.gain.setTargetAtTime(fxVolume, this.context.currentTime, 0.03);
   }
 
   update(current, throttle, isPaused) {
@@ -105,6 +119,29 @@ class GameAudio {
 }
 
 const audio = new GameAudio();
+const menuMusic = new Audio('./assets/weather-child.mp3');
+menuMusic.loop = true;
+menuMusic.preload = 'auto';
+menuMusic.volume = 0.62;
+let menuMusicPlaying = false;
+
+function updateMenuMusicButton() {
+  ui.menuMusic?.classList.toggle('playing', menuMusicPlaying);
+  ui.menuMusic?.setAttribute('aria-pressed', String(menuMusicPlaying));
+  ui.menuMusic?.setAttribute('aria-label', menuMusicPlaying ? '暂停天气之子·幻' : '播放天气之子·幻');
+  ui.menuMusic?.setAttribute('title', menuMusicPlaying ? '暂停音乐' : '播放音乐');
+}
+
+async function toggleMenuMusic() {
+  if (menuMusicPlaying) {
+    menuMusic.pause();
+    menuMusicPlaying = false;
+  } else {
+    try { await menuMusic.play(); menuMusicPlaying = true; }
+    catch { menuMusicPlaying = false; }
+  }
+  updateMenuMusicButton();
+}
 
 function throttleValue() {
   const forward = [...heldKeys].some(key => forwardKeys.has(key)) || [...heldPointers.values()].includes('gas');
@@ -135,6 +172,30 @@ function clearInput() {
   updateHeldButtons();
 }
 
+function readSavedSkin() {
+  try {
+    return localStorage.getItem('driveMadCarSkin') || 'yellow';
+  } catch {
+    return 'yellow';
+  }
+}
+
+function applyCarSkin(skinId, persist = true) {
+  currentSkin = CAR_SKINS[skinId] ? skinId : 'yellow';
+  const skin = CAR_SKINS[currentSkin];
+  view.setCarSkin(skin.colors);
+  document.querySelectorAll('[data-car-skin]').forEach(button => {
+    const selected = button.dataset.carSkin === currentSkin;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+  const label = document.getElementById('skinLabel');
+  if (label) label.textContent = skin.label;
+  if (persist) {
+    try { localStorage.setItem('driveMadCarSkin', currentSkin); } catch {}
+  }
+}
+
 function setModal(mode, title = '', message = '', primary = '', secondary = '') {
   modalMode = mode;
   ui.modal.hidden = !mode;
@@ -145,6 +206,7 @@ function setModal(mode, title = '', message = '', primary = '', secondary = '') 
   if (!mode) {
     ui.primary.blur();
     ui.secondary.blur();
+    ui.nextLevel?.blur();
     return;
   }
   clearInput();
@@ -153,6 +215,7 @@ function setModal(mode, title = '', message = '', primary = '', secondary = '') 
   ui.primary.textContent = primary;
   ui.secondary.textContent = secondary;
   ui.secondary.hidden = !secondary;
+  ui.nextLevel.hidden = !(mode === 'won' && currentLevel < 6);
   ui.primary.focus({ preventScroll: true });
 }
 
@@ -193,6 +256,7 @@ function updateHud() {
   ui.pause?.classList.toggle('is-paused', paused);
   ui.pause?.setAttribute('aria-pressed', String(paused));
   ui.pause?.setAttribute('aria-label', paused ? '继续游戏' : '暂停游戏');
+  if (ui.testModeBadge) ui.testModeBadge.hidden = !testMode || inMenu;
 }
 
 function reset() {
@@ -253,8 +317,8 @@ function finish() {
     view.celebration();
     audio.win();
     const gold = earnedGold();
-    const result = gold ? '获得金牌！' : '已完成关卡；10 秒内抵达可获金牌。';
-    const next = currentLevel < 3 ? document.getElementById(`level${currentLevel + 1}`) : null;
+    const result = gold ? '获得金牌！' : `已完成关卡；${GOLD_TIME_LIMIT} 秒内抵达可获金牌。`;
+    const next = currentLevel < 6 ? document.getElementById(`level${currentLevel + 1}`) : null;
     if (next) {
       next.disabled = false;
       next.classList.remove('locked');
@@ -267,7 +331,8 @@ function finish() {
     clearInput();
     view.crash();
     audio.crash();
-    const message = state.crashReason === 'roof' ? '车顶碰到了地面。试着调整油门，保持平衡。' : '掉出赛道了。回到起点，再试一次！';
+    const gearMessage = currentLevel >= 4 ? '碰到旋转齿轮了！躲开齿轮，等待红色激光关闭再穿过。' : '碰到旋转齿轮了！齿轮会挡住去路，从上方飞过去。';
+    const message = state.crashReason === 'gear' ? gearMessage : state.crashReason === 'roof' ? '车顶碰到了地面。试着调整油门，保持平衡。' : '掉出赛道了。回到起点，再试一次！';
     setModal('crashed', '再试一次！', message, '重新开始', '返回主菜单');
   }
 }
@@ -320,13 +385,44 @@ async function toggleFullscreen() {
 
 bindHold(ui.gas, 'gas');
 bindHold(ui.back, 'back');
+applyCarSkin(readSavedSkin(), false);
+document.querySelectorAll('[data-car-skin]').forEach(button => {
+  button.addEventListener('click', () => applyCarSkin(button.dataset.carSkin));
+});
 ui.menuStart?.addEventListener('click', () => startSelectedLevel(currentLevel));
+ui.menuMusic?.addEventListener('click', () => { audio.unlock(); toggleMenuMusic(); });
 ui.level1?.addEventListener('click', () => startSelectedLevel(1));
 ui.level2?.addEventListener('click', () => startSelectedLevel(2));
 ui.level3?.addEventListener('click', () => startSelectedLevel(3));
+ui.level4?.addEventListener('click', () => startSelectedLevel(4));
+ui.level5?.addEventListener('click', () => startSelectedLevel(5));
+ui.level6?.addEventListener('click', () => startSelectedLevel(6));
+ui.testModeBadge?.addEventListener('click', () => {
+  testMode = false;
+  pPresses = [];
+  physics.setTestMode(false);
+  updateHud();
+});
 window.addEventListener('keydown', event => {
   if (event.ctrlKey || event.metaKey || event.altKey || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable) return;
   const key = keyName(event);
+  if (key === 'p' && !event.repeat) {
+    event.preventDefault();
+    const now = performance.now();
+    pPresses = pPresses.filter(time => now - time <= 3000);
+    pPresses.push(now);
+    if (!testMode && pPresses.length >= 5) {
+      testMode = true;
+      pPresses = [];
+      physics.setTestMode(true);
+      if (state.status === 'crashed' || state.status === 'won') reset();
+      if (paused) setPaused(false);
+      updateHud();
+      return;
+    }
+    // P is reserved for the hidden test-mode sequence and never pauses.
+    return;
+  }
   if (inMenu && (key === 'Enter' || key === ' ')) {
     event.preventDefault();
     startSelectedLevel();
@@ -345,7 +441,7 @@ window.addEventListener('keydown', event => {
     audio.unlock();
     if (inMenu) return;
     reset();
-  } else if (key === 'p' || (key === 'Escape' && !document.fullscreenElement)) {
+  } else if (key === 'Escape' && !document.fullscreenElement) {
     event.preventDefault();
     setPaused(!paused);
   } else if (key === 'f') {
@@ -369,16 +465,19 @@ ui.secondary.addEventListener('click', () => {
   if (modalMode === 'paused' || modalMode === 'won' || modalMode === 'crashed') showMainMenu();
   else setModal(null);
 });
+ui.nextLevel.addEventListener('click', () => {
+  if (modalMode === 'won' && currentLevel < 6) startSelectedLevel(currentLevel + 1);
+});
 ui.sound.addEventListener('click', () => {
   audio.unlock();
-  soundEnabled = !soundEnabled;
-  audio.mute(!soundEnabled);
-  ui.sound.classList.toggle('is-muted', !soundEnabled);
-  ui.sound.dataset.muted = String(!soundEnabled);
-  ui.sound.setAttribute('aria-pressed', String(soundEnabled));
-  ui.sound.setAttribute('aria-label', soundEnabled ? '关闭声音' : '开启声音');
-  ui.sound.title = soundEnabled ? '关闭声音' : '开启声音';
+  const open = ui.soundPanel.hidden;
+  ui.soundPanel.hidden = !open;
+  ui.sound.setAttribute('aria-expanded', String(open));
 });
+ui.soundPanel.addEventListener('pointerdown', event => event.stopPropagation());
+ui.soundPanel.addEventListener('click', event => event.stopPropagation());
+ui.musicVolume.addEventListener('input', event => { musicVolume = Number(event.target.value); menuMusic.volume = musicVolume; });
+ui.fxVolume.addEventListener('input', event => { audio.setVolume(event.target.value); ui.sound.classList.toggle('is-muted', fxVolume === 0); });
 ui.fullscreen.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', () => {
   const active = Boolean(document.fullscreenElement);
@@ -405,10 +504,10 @@ function scheduleResize() {
 }
 window.addEventListener('resize', scheduleResize);
 if (typeof ResizeObserver !== 'undefined') new ResizeObserver(scheduleResize).observe(ui.game.parentElement);
-ui.sound.setAttribute('aria-pressed', 'true');
-ui.sound.setAttribute('aria-label', '关闭声音');
+ui.sound.setAttribute('aria-expanded', 'false');
 view.resize();
 view.reset();
 setModal(null);
 updateHud();
+updateMenuMusicButton();
 requestAnimationFrame(frame);
