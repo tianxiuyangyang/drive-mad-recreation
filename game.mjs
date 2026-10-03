@@ -1,5 +1,6 @@
 import { VehiclePhysics, getCourse } from './physics.mjs?v=20261002-58';
 import { SceneView } from './scene.mjs?v=20261002-58';
+import { setupTutorials } from './tutorials.mjs';
 
 const byId = id => document.getElementById(id);
 const ui = Object.fromEntries([
@@ -142,6 +143,22 @@ async function toggleMenuMusic() {
   }
   updateMenuMusicButton();
 }
+
+const tutorialDialog = byId('tutorialDialog');
+let resumeTutorialMusic = false;
+setupTutorials({
+  onOpen() {
+    clearInput();
+    resumeTutorialMusic = menuMusicPlaying;
+    menuMusic.pause();
+    menuMusicPlaying = false;
+    updateMenuMusicButton();
+  },
+  onClose() {
+    if (resumeTutorialMusic) toggleMenuMusic();
+    resumeTutorialMusic = false;
+  },
+});
 
 function throttleValue() {
   const forward = [...heldKeys].some(key => forwardKeys.has(key)) || [...heldPointers.values()].includes('gas');
@@ -404,6 +421,7 @@ ui.testModeBadge?.addEventListener('click', () => {
   updateHud();
 });
 window.addEventListener('keydown', event => {
+  if (tutorialDialog?.dataset.open === 'true') return;
   if (event.ctrlKey || event.metaKey || event.altKey || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable) return;
   const key = keyName(event);
   if (key === 'p' && !event.repeat) {
@@ -424,6 +442,7 @@ window.addEventListener('keydown', event => {
     return;
   }
   if (inMenu && (key === 'Enter' || key === ' ')) {
+    if (event.target.closest('button')) return;
     event.preventDefault();
     startSelectedLevel();
     return;

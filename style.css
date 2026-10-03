@@ -31,3 +31,27 @@
 .skin-chip:hover{transform:translateY(-2px)}
 .skin-chip:active{transform:translateY(1px)}
 @media(max-width:720px){.skin-picker{margin-top:8px;padding-top:7px}.skin-picker-head{font-size:10px}.skin-options{gap:4px}.skin-chip{height:36px;border-radius:7px;font-size:8px}.skin-chip i{width:19px;height:9px}}
+/* Tutorial entry and player */
+.menu-foot{align-items:flex-end;opacity:1;gap:12px;pointer-events:none}
+.menu-foot>span,.menu-help>span{opacity:.72}
+.menu-help{display:flex;flex-direction:column;align-items:flex-end;gap:12px;pointer-events:auto}
+.tutorial-open{display:flex;align-items:center;gap:10px;padding:12px 15px;border:1px solid #fff29b;border-radius:12px;background:#ffda3b;color:#25415b;font-size:13px;font-weight:900;letter-spacing:0;box-shadow:0 4px #a9761d;transition:transform .15s,background .15s}
+.tutorial-open b{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:#25415b;color:#ffdf57;font-size:11px}
+.tutorial-open:hover{background:#ffe775;transform:translateY(-2px)}
+.tutorial-dialog{width:min(900px,92vw);max-height:92dvh;overflow:auto;padding:24px;border:2px solid #ffffff80;border-radius:22px;background:#073d6f;color:#fff;box-shadow:0 24px 80px #00254388;touch-action:auto}
+.tutorial-dialog::backdrop{background:#022842bb;backdrop-filter:blur(7px)}
+.tutorial-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.tutorial-heading small{color:#ffdf57;font-size:11px;letter-spacing:2px}
+.tutorial-heading h2{margin:8px 0 0;font-size:clamp(16px,2.4vw,24px)}
+#tutorialClose{flex-shrink:0;width:38px;height:38px;border:1px solid #ffffff55;border-radius:10px;background:#ffffff17;color:white;font-size:28px}
+.tutorial-levels{display:flex;gap:10px;margin:22px 0 16px}
+.tutorial-levels button{flex:1;padding:11px;border:1px solid #ffffff50;border-radius:10px;background:#ffffff12;color:white;font-weight:900}
+.tutorial-levels button[aria-pressed=true]{background:#ffda3b;border-color:#fff29b;color:#25415b;box-shadow:0 3px #a9761d}
+#tutorialVideo{display:block;width:100%;aspect-ratio:16/9;max-height:60dvh;background:#061a2a;border-radius:12px;touch-action:auto}
+.tutorial-tip,#tutorialError{font-size:12px;line-height:1.6;margin:14px 0 0;color:#d4efff}
+#tutorialError{color:#ffe775}
+@media(max-width:720px){.menu-foot{flex-wrap:wrap;gap:8px}.menu-help{margin-left:auto;gap:6px}.menu-help>span:last-child{display:block}.tutorial-open{padding:7px 10px;font-size:11px;gap:7px}.tutorial-open b{width:20px;height:20px}.tutorial-dialog{padding:16px}.tutorial-levels{margin-top:16px}}
+@media(max-height:600px){.tutorial-dialog{padding:14px}.tutorial-heading h2{font-size:16px}.tutorial-levels{margin:12px 0}.tutorial-levels button{padding:7px}#tutorialVideo{max-height:52dvh}.tutorial-tip{margin-top:8px}.level-panel{top:9%;padding:12px}.level-card{min-height:65px;padding:6px}.level-panel-head{margin-bottom:6px}.level-panel-head span{font-size:18px}.menu-start{margin-top:8px;padding:8px 13px}.skin-picker{margin-top:7px;padding-top:6px}.skin-options{margin-top:5px}.skin-chip{height:32px}.menu-help{gap:6px}.tutorial-open{padding:7px 10px;font-size:11px}}
+@media(max-height:600px){.game-shell:has(.main-menu:not(.hidden)){touch-action:pan-y}.level-panel{max-height:calc(100dvh - 125px);overflow-y:auto;touch-action:pan-y;scrollbar-width:thin;scrollbar-color:#ffda3b #073d6f}}
+.tutorial-dialog-visible{display:block;position:fixed;inset:4% auto auto 50%;transform:translateX(-50%);z-index:20}
+.tutorial-dialog{position:fixed;inset:0;z-index:20;display:grid;place-items:center;width:100%;height:100%;margin:0;padding:24px;border:0;background:#022842bb;color:#fff;overflow:auto}.tutorial-dialog[hidden]{display:none}.tutorial-dialog>div,.tutorial-dialog>video,.tutorial-dialog>p{width:min(900px,92vw)}.tutorial-dialog>div{padding:24px;border-radius:22px 22px 0 0;background:#073d6f}.tutorial-dialog>video{margin:0;padding:0;background:#061a2a}.tutorial-dialog>.tutorial-tip,.tutorial-dialog>#tutorialError{margin:0;padding:14px 24px;border-radius:0 0 22px 22px;background:#073d6f}

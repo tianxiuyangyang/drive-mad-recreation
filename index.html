@@ -59,8 +59,19 @@
      </div>
     </div>
    </div>
-   <div class="menu-foot"><span>ENTER 开始&nbsp; · &nbsp;← → / A D 驾驶</span><span>保持车身平衡 · 安全到达终点</span></div>
+   <div class="menu-foot"><span>ENTER 开始&nbsp; · &nbsp;← → / A D 驾驶</span><div class="menu-help"><button id="tutorialOpen" class="tutorial-open" type="button" aria-haspopup="dialog"><b aria-hidden="true">▶</b>承认自己是菜鸡就来看教学视频</button><span>保持车身平衡 · 安全到达终点</span></div></div>
   </section>
+  <div id="tutorialDialog" class="tutorial-dialog" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle" hidden>
+   <div class="tutorial-heading"><div><small>通关教学 · 04 / 05 / 06</small><h2 id="tutorialTitle">承认自己是菜鸡就来看教学视频</h2></div><button id="tutorialClose" type="button" aria-label="关闭教学视频">×</button></div>
+   <div class="tutorial-levels" aria-label="选择教学视频">
+    <button type="button" data-tutorial="4" aria-pressed="true">第四关</button>
+    <button type="button" data-tutorial="5" aria-pressed="false">第五关</button>
+    <button type="button" data-tutorial="6" aria-pressed="false">第六关</button>
+   </div>
+   <video id="tutorialVideo" controls playsinline muted preload="none" aria-label="第四关教学视频"></video>
+   <p id="tutorialError" role="status" hidden>视频暂时无法播放，请关闭后重试。</p>
+   <p class="tutorial-tip">可暂停、拖动进度或全屏观看，学会了就去挑战！</p>
+  </div>
   <section id="modal" class="modal" aria-label="游戏菜单" aria-hidden="true" hidden>
    <div class="modal-content">
     <div class="modal-emblem">★</div>
@@ -72,6 +83,6 @@
    </div>
   </section>
  </main>
- <script type="module" src="./game.mjs?v=20261002-58"></script>
+ <script type="module" src="./game.mjs?v=20261003-59"></script>
 </body>
 </html>

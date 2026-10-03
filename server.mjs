@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { createReadStream } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -100,17 +101,36 @@ const server = http.createServer(async (request, response) => {
       return;
     }
     const contentType = mimeTypes[path.extname(filePath).toLowerCase()] || 'application/octet-stream';
-    const content = request.method === 'HEAD' ? undefined : await fs.readFile(realPath);
-    response.writeHead(200, {
+    let start = 0;
+    let end = info.size - 1;
+    const range = request.method === 'GET' ? request.headers.range : null;
+    if (range) {
+      const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+      if (match && (match[1] || match[2])) {
+        start = match[1] ? Number(match[1]) : Math.max(0, info.size - Number(match[2]));
+        end = match[1] && match[2] ? Math.min(Number(match[2]), end) : end;
+      }
+      if (!match || (!match[1] && !match[2]) || !Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || start >= info.size) {
+        response.writeHead(416, { 'Content-Range': `bytes */${info.size}` });
+        response.end();
+        return;
+      }
+    }
+    response.writeHead(range ? 206 : 200, {
       'Content-Type': contentType,
-      'Content-Length': info.size,
+      'Content-Length': Math.max(0, end - start + 1),
+      'Accept-Ranges': 'bytes',
+      ...(range ? { 'Content-Range': `bytes ${start}-${end}/${info.size}` } : {}),
       'Cache-Control': 'no-store',
     });
     if (request.method === 'HEAD') {
       response.end();
       return;
     }
-    response.end(content);
+    const stream = createReadStream(realPath, { start, ...(info.size ? { end } : {}) });
+    stream.on('error', error => response.destroy(error));
+    response.on('close', () => stream.destroy());
+    stream.pipe(response);
   } catch (error) {
     if (error?.code === 'ENOENT' || error?.code === 'ENOTDIR') {
       sendText(response, 404, 'Not Found');
