@@ -1,12 +1,12 @@
-import { VehiclePhysics, getCourse } from './physics.mjs?v=20261002-58';
-import { SceneView } from './scene.mjs?v=20261002-58';
+import { VehiclePhysics, getCourse } from './physics.mjs?v=20261004-73';
+import { SceneView } from './scene.mjs?v=20261004-73';
 import { setupTutorials } from './tutorials.mjs';
 
 const byId = id => document.getElementById(id);
 const ui = Object.fromEntries([
   'shell', 'game', 'pause', 'restart', 'sound', 'fullscreen', 'back', 'gas', 'rocket', 'modal', 'testModeBadge',
   'modalTitle', 'modalText', 'primary', 'secondary', 'nextLevel', 'hint', 'levelTitle', 'soundPanel', 'musicVolume', 'fxVolume',
-  'timer', 'goldFill', 'status', 'mainMenu', 'menuStart', 'level1', 'level2', 'level3', 'level4', 'level5', 'level6', 'levelNumber', 'menuMusic',
+  'timer', 'goldFill', 'status', 'mainMenu', 'menuStart', 'level1', 'level2', 'level3', 'level4', 'level5', 'level6', 'level7', 'level8', 'levelNumber', 'menuMusic',
 ].map(id => [id, byId(id)]));
 
 const physics = new VehiclePhysics();
@@ -213,6 +213,39 @@ function applyCarSkin(skinId, persist = true) {
   }
 }
 
+function readClearedLevels() {
+  try {
+    const raw = localStorage.getItem('driveMadClearedLevels');
+    const list = raw ? JSON.parse(raw) : [];
+    return new Set((Array.isArray(list) ? list : []).map(Number).filter(level => Number.isInteger(level) && level > 0));
+  } catch {
+    return new Set();
+  }
+}
+
+function writeClearedLevels() {
+  try {
+    localStorage.setItem('driveMadClearedLevels', JSON.stringify([...clearedLevels].sort((a, b) => a - b)));
+  } catch {}
+}
+
+function renderClearedLevels() {
+  document.querySelectorAll('.level-card').forEach(card => {
+    const cleared = clearedLevels.has(Number(card.dataset.level));
+    card.classList.toggle('cleared', cleared);
+    if (cleared) card.title = '已通关';
+    else card.removeAttribute('title');
+  });
+}
+
+function markLevelCleared(level) {
+  clearedLevels.add(Number(level));
+  writeClearedLevels();
+  renderClearedLevels();
+}
+
+const clearedLevels = readClearedLevels();
+
 function setModal(mode, title = '', message = '', primary = '', secondary = '') {
   modalMode = mode;
   ui.modal.hidden = !mode;
@@ -232,7 +265,7 @@ function setModal(mode, title = '', message = '', primary = '', secondary = '') 
   ui.primary.textContent = primary;
   ui.secondary.textContent = secondary;
   ui.secondary.hidden = !secondary;
-  ui.nextLevel.hidden = !(mode === 'won' && currentLevel < 6);
+  ui.nextLevel.hidden = !(mode === 'won' && currentLevel < 8);
   ui.primary.focus({ preventScroll: true });
 }
 
@@ -333,9 +366,10 @@ function finish() {
     clearInput();
     view.celebration();
     audio.win();
+    markLevelCleared(currentLevel);
     const gold = earnedGold();
     const result = gold ? '获得金牌！' : `已完成关卡；${GOLD_TIME_LIMIT} 秒内抵达可获金牌。`;
-    const next = currentLevel < 6 ? document.getElementById(`level${currentLevel + 1}`) : null;
+    const next = currentLevel < 8 ? document.getElementById(`level${currentLevel + 1}`) : null;
     if (next) {
       next.disabled = false;
       next.classList.remove('locked');
@@ -403,6 +437,7 @@ async function toggleFullscreen() {
 bindHold(ui.gas, 'gas');
 bindHold(ui.back, 'back');
 applyCarSkin(readSavedSkin(), false);
+renderClearedLevels();
 document.querySelectorAll('[data-car-skin]').forEach(button => {
   button.addEventListener('click', () => applyCarSkin(button.dataset.carSkin));
 });
@@ -414,6 +449,8 @@ ui.level3?.addEventListener('click', () => startSelectedLevel(3));
 ui.level4?.addEventListener('click', () => startSelectedLevel(4));
 ui.level5?.addEventListener('click', () => startSelectedLevel(5));
 ui.level6?.addEventListener('click', () => startSelectedLevel(6));
+ui.level7?.addEventListener('click', () => startSelectedLevel(7));
+ui.level8?.addEventListener('click', () => startSelectedLevel(8));
 ui.testModeBadge?.addEventListener('click', () => {
   testMode = false;
   pPresses = [];
@@ -485,7 +522,7 @@ ui.secondary.addEventListener('click', () => {
   else setModal(null);
 });
 ui.nextLevel.addEventListener('click', () => {
-  if (modalMode === 'won' && currentLevel < 6) startSelectedLevel(currentLevel + 1);
+  if (modalMode === 'won' && currentLevel < 8) startSelectedLevel(currentLevel + 1);
 });
 ui.sound.addEventListener('click', () => {
   audio.unlock();

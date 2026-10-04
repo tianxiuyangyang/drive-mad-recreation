@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js?v=20261002-58';
-import { COURSE, TRAP_LASER, trapLaserRows } from './physics.mjs?v=20261002-58';
+import { COURSE, TRAP_LASER, trapLaserRows } from './physics.mjs?v=20261004-73';
 
 const color = value => new THREE.Color(value);
 const palettes = new Map();
@@ -100,6 +100,7 @@ export class SceneView {
     this.rotatingBaffleVisuals = [];
     this.upJetVisual = null;
     this.upJetPuffs = [];
+    this.movingWallVisuals = [];
     this.carSkin = null;
     this.carSkinMeshes = [];
     this.clock = 0;
@@ -379,6 +380,16 @@ export class SceneView {
         if (wall.gapBottom > 0) block(this.world, wall.x, wall.gapBottom, -1.62, 1.0, .12, .08, '#f8d06c');
       }
     }
+    this.movingWallVisuals = [];
+    for (const config of this.course.movingWalls || []) {
+      const group = new THREE.Group();
+      group.position.set(config.x, config.minY, 0);
+      this.world.add(group);
+      block(group, 0, 0, 0, config.thickness, config.height, 3.2, '#8f5e78');
+      block(group, 0, -config.height / 2 + .3, -1.62, config.thickness + .26, .12, .08, '#f8d06c');
+      block(group, 0, config.height / 2 - .3, -1.62, config.thickness + .26, .12, .08, '#f8d06c');
+      this.movingWallVisuals.push({ group, config });
+    }
     if (this.course.ceiling) {
       const {startX, endX, y, thickness} = this.course.ceiling;
       block(this.world, (startX + endX) / 2, y, 0, endX - startX, thickness, 3.35, '#76566f');
@@ -511,7 +522,8 @@ export class SceneView {
     // The visual hub shares the exact center used by the physics body.
     hub.position.y = 0;
     rig.add(hub);
-    block(hub, 0, 0, 0, .72, .72, .72, '#f4c935');
+    const hubSize = Math.max(.72, halfLength * .24);
+    block(hub, 0, 0, 0, hubSize, hubSize, hubSize, '#f4c935');
     const armMaterials = ['#c36d76', '#d88b80', '#b95e70', '#e3a092'];
     const armCount = config.armCount || 4;
     for (let i = 0; i < armCount; i++) {
@@ -843,6 +855,10 @@ export class SceneView {
     const windmillAngles = state.windmillAngles || (state.windmillAngle === null ? [] : [state.windmillAngle]);
     this.windmillVisuals?.forEach((hub, index) => {
       if (windmillAngles[index] !== undefined) hub.rotation.z = windmillAngles[index];
+    });
+    this.movingWallVisuals?.forEach(({ group }, index) => {
+      const wallState = state.movingWalls?.[index];
+      if (wallState) group.position.y = wallState.y;
     });
     if (this.hazardWindmillVisual && state.hazardWindmill) {
       this.hazardWindmillVisual.rotation.z = state.hazardWindmill.angle;

@@ -90,12 +90,74 @@ const COURSE_3 = Object.freeze({
   wheelRadius: .63, axleHalfWidth: 1.25, terrain: Object.freeze(COURSE_3_PARTS.flat()), terrainParts: COURSE_3_PARTS,
 });
 
+// Level five is the short jet-flight breather before the tunnel: the car uses
+// the tunnel's own jet logic and has to thread three wall openings in a row
+// before the ground gate. The first opening is tall, the two behind it are half
+// its height and sit at opposite extremes - one on the ground, one against the
+// safe ceiling - and that non-lethal ceiling keeps the walls from being flown
+// over without adding a second way to die.
+const COURSE_5_PARTS = Object.freeze([
+  Object.freeze([{x:-4,y:0},{x:72,y:0}].map(Object.freeze)),
+]);
+const COURSE_5 = Object.freeze({
+  id: 5, title: 'Jet Gates', startX: 0, finishX: 64, minX: -4, maxX: 80, waterY: -2.1, finishTop: 3.45, jet: true,
+  wheelRadius: .63, axleHalfWidth: 1.25,
+  terrain: Object.freeze(COURSE_5_PARTS.flat()), terrainParts: COURSE_5_PARTS,
+  wallHeight: 13,
+  lowCeilings: Object.freeze([
+    Object.freeze({startX:2,endX:80,y:13,thickness:.55}),
+  ]),
+  // Every opening is half the original height (4.65 instead of 9.3). They are
+  // spread down the wall face: mid, ground and ceiling, so the line has to
+  // climb and drop between gates instead of flying straight through.
+  wallGaps: Object.freeze([
+    Object.freeze({x:26,gapBottom:3.2,gapTop:7.85}),
+    Object.freeze({x:38,gapBottom:0,gapTop:4.65}),
+    Object.freeze({x:50,gapBottom:8.05,gapTop:12.7}),
+  ]),
+});
+
+// Level six keeps only the middle wall of the level five gate line and turns the
+// other two into moving parts: a big three-blade fan replaces the first wall,
+// the last wall shuttles between the floor and the ceiling, and a fast
+// four-blade fan spins right behind it. The upward jet still sits under the
+// surviving middle wall.
+const COURSE_6_PARTS = Object.freeze([
+  Object.freeze([{x:-4,y:0},{x:80,y:0}].map(Object.freeze)),
+]);
+const COURSE_6 = Object.freeze({
+  ...COURSE_5,
+  id: 6,
+  title: 'Jet Lift',
+  finishX: 70,
+  maxX: 86,
+  terrain: Object.freeze(COURSE_6_PARTS.flat()),
+  terrainParts: COURSE_6_PARTS,
+  // The overhead barrier is now a normal ceiling: the roof dies on it.
+  ceiling: Object.freeze({startX:2,endX:84,y:13,thickness:.55}),
+  lowCeilings: undefined,
+  wallGaps: Object.freeze([
+    Object.freeze({...COURSE_5.wallGaps[1], gapTop: 2.325}),
+  ]),
+  windmills: Object.freeze([
+    Object.freeze({x:26,y:6.6,halfLength:6.3,thickness:.62,armCount:3,speed:-1.15,startAngle:.35}),
+    Object.freeze({x:60,y:6.6,halfLength:7,thickness:.85,armCount:4,speed:-3.1,startAngle:.9}),
+  ]),
+  // The two sliding walls start at opposite ends and run mirrored, so one is
+  // rising exactly while the other is dropping.
+  movingWalls: Object.freeze([
+    Object.freeze({x:44,height:7,thickness:.84,speed:3,minY:3.5,maxY:9.225,startY:3.5,startDirection:1}),
+    Object.freeze({x:50,height:7,thickness:.84,speed:3,minY:3.5,maxY:9.225,startY:9.225,startDirection:-1}),
+  ]),
+  upJet: Object.freeze({x:38.5,width:1.7,bottomY:.5,topY:6.55,force:180}),
+});
+
 const JET_TUNNEL_PARTS = Object.freeze([
   Object.freeze([{x:-4,y:0},{x:10,y:0},{x:13,y:0},{x:13,y:-6},{x:23,y:-6},{x:27,y:-1.2},{x:30,y:0},{x:55.8,y:0}].map(Object.freeze)),
   Object.freeze([{x:61.2,y:0},{x:92,y:0}].map(Object.freeze)),
 ]);
-const COURSE_5 = Object.freeze({
-  id: 5, title: 'Jet Tunnel', startX: 0, finishX: 84, minX: -4, maxX: 92, waterY: -2.1, finishTop: 3.45, jet: true,
+const COURSE_7 = Object.freeze({
+  id: 7, title: 'Jet Tunnel', startX: 0, finishX: 84, minX: -4, maxX: 92, waterY: -2.1, finishTop: 3.45, jet: true,
   wheelRadius: .63, axleHalfWidth: 1.25, terrain: Object.freeze(JET_TUNNEL_PARTS.flat()), terrainParts: JET_TUNNEL_PARTS,
   wallHeight: 14,
   gearTrap: Object.freeze({x:58.5,bottomY:-2.4,topY:7.2,radius:1.5,toothLength:.5,toothWidth:.38,teeth:12,riseSpeed:1.15,fallSpeed:1.1,holdSeconds:3,spinSpeed:-3}),
@@ -159,20 +221,20 @@ const COURSE_4 = Object.freeze({
     Object.freeze({x:228,y:18,length:24,thickness:.8,speed:-2.1}),
   ]),
 });
-const COURSE_6_PARTS = Object.freeze([
+const COURSE_8_PARTS = Object.freeze([
   JET_TUNNEL_PARTS[0],
   Object.freeze([
     {x:61.2,y:0},{x:86,y:0},{x:88,y:.55},{x:100,y:.55},{x:102,y:0},{x:190,y:0},
   ].map(Object.freeze)),
 ]);
-const COURSE_6 = Object.freeze({
-  ...COURSE_5,
-  id: 6,
+const COURSE_8 = Object.freeze({
+  ...COURSE_7,
+  id: 8,
   title: 'Gear Gauntlet',
   finishX: 150,
   maxX: 195,
-  terrain: Object.freeze(COURSE_6_PARTS.flat()),
-  terrainParts: COURSE_6_PARTS,
+  terrain: Object.freeze(COURSE_8_PARTS.flat()),
+  terrainParts: COURSE_8_PARTS,
   wallHeight: 20,
   ceiling: Object.freeze({startX:2,endX:190,y:23,thickness:.55}),
   lowCeilings: Object.freeze([
@@ -188,8 +250,8 @@ const COURSE_6 = Object.freeze({
     Object.freeze({x:126,bottomY:17.9,topY:20.3,thickness:.55}),
   ]),
   wallGaps: Object.freeze([
-    COURSE_5.wallGaps[0],
-    Object.freeze({...COURSE_5.wallGaps[4], gapBottom:5.5, gapTop:10.7}),
+    COURSE_7.wallGaps[0],
+    Object.freeze({...COURSE_7.wallGaps[4], gapBottom:5.5, gapTop:10.7}),
   ]),
   gearTrap: undefined,
   secondTrap: undefined,
@@ -217,7 +279,7 @@ const COURSE_6 = Object.freeze({
   laserCrate: Object.freeze({x:119.255,y:1.25,width:2.5,height:2.5,depth:2.5}),
 });
 
-export const LEVELS = Object.freeze([COURSE_1, COURSE_2, COURSE_3, COURSE_4, COURSE_5, COURSE_6]);
+export const LEVELS = Object.freeze([COURSE_1, COURSE_2, COURSE_3, COURSE_4, COURSE_5, COURSE_6, COURSE_7, COURSE_8]);
 export const COURSE = COURSE_1;
 // Shared beam dimensions keep the visible laser rows and collisions aligned.
 export const TRAP_LASER = Object.freeze({width:.09,height:.055,spacing:.22});
@@ -349,6 +411,15 @@ export class VehiclePhysics {
         const upperHeight = course.wallHeight - wall.gapTop;
         walls.createFixture(Box(wallHalfWidth, upperHeight / 2, Vec2(wall.x, wall.gapTop + upperHeight / 2), 0), { friction: 0.8, userData: { kind: 'ground' } });
       }
+    }
+    this.movingWalls = [];
+    for (const config of course.movingWalls || []) {
+      const startY = Number.isFinite(config.startY) ? config.startY : config.minY;
+      const body = this.world.createKinematicBody({ position: Vec2(config.x, startY), angle: 0 });
+      body.createFixture(Box(config.thickness / 2, config.height / 2), {
+        friction: .8, restitution: 0, userData: { kind: 'ground' },
+      });
+      this.movingWalls.push({ body, config, direction: config.startDirection === -1 ? -1 : 1 });
     }
     if (course.ceiling) {
       const {startX, endX, y, thickness} = course.ceiling;
@@ -501,11 +572,18 @@ export class VehiclePhysics {
     for (const config of windmillConfigs) {
       const {x,y,halfLength,thickness,startAngle} = config;
       const windmill = this.world.createKinematicBody({position:Vec2(x,y),angle:startAngle});
-      for (const angle of [0,Math.PI/2]) {
-        windmill.createFixture(Box(halfLength,thickness/2,Vec2(0,0),angle), {
+      // Each blade is its own half-length box so a rotor can be built with any
+      // arm count instead of always being a two-box cross.
+      const armCount = config.armCount || 4;
+      for (let i = 0; i < armCount; i++) {
+        const angle = i * Math.PI * 2 / armCount;
+        windmill.createFixture(Box(halfLength/2,thickness/2,Vec2(Math.cos(angle)*halfLength/2,Math.sin(angle)*halfLength/2),angle), {
           friction:2.2,restitution:0,userData:{kind:'windmill'},
         });
       }
+      windmill.createFixture(Circle(Math.max(.36, halfLength * .12)), {
+        friction:1.2,restitution:0,userData:{kind:'windmill-hub'},
+      });
       this.windmills.push(windmill);
     }
     // Keep the singular alias for older scene integrations and diagnostics.
@@ -581,12 +659,13 @@ export class VehiclePhysics {
       this.thirdLaserTriggered = true;
       this.thirdLaserActivated = true;
     }
-    const surface = a?.kind === 'ground' || a?.kind === 'seesaw' || a?.kind === 'windmill' ? a : b?.kind === 'ground' || b?.kind === 'seesaw' || b?.kind === 'windmill' ? b : null;
+    const surfaceKinds = ['ground','seesaw','windmill','windmill-hub'];
+    const surface = surfaceKinds.includes(a?.kind) ? a : surfaceKinds.includes(b?.kind) ? b : null;
     const vehicle = surface === a ? b : surface === b ? a : null;
     if (!vehicle || !surface) return;
     let contacts;
     if (vehicle.kind === 'wheel') contacts = surface.kind === 'windmill' ? this.windmillContacts[vehicle.index] : this.groundContacts[vehicle.index];
-    if (vehicle.kind === 'roof' && surface.kind === 'ground') contacts = this.roofContacts;
+    if (vehicle.kind === 'roof' && (surface.kind === 'ground' || surface.kind === 'windmill-hub')) contacts = this.roofContacts;
     if (contacts) touching ? contacts.add(contact) : contacts.delete(contact);
   }
 
@@ -618,6 +697,9 @@ export class VehiclePhysics {
     this.advanceThirdLaser();
     const windmillConfigs = this.course.windmills || (this.course.windmill ? [this.course.windmill] : []);
     this.windmills.forEach((windmill, index) => windmill.setAngularVelocity(windmillConfigs[index].speed));
+    for (const wall of this.movingWalls) {
+      wall.body.setLinearVelocity(Vec2(0, wall.direction * wall.config.speed));
+    }
     if (this.blockerGear) this.blockerGear.setAngularVelocity(this.course.blockerGear.spinSpeed);
     if (this.rotatingBaffles.length) {
       this.rotatingBaffles.forEach((body,index)=>body.setAngularVelocity(this.course.rotatingBaffles[index].speed));
@@ -683,6 +765,11 @@ export class VehiclePhysics {
       this.rocketFuel = Math.max(0, this.rocketFuel - FIXED_STEP);
     }
     this.world.step(FIXED_STEP, 8, 4);
+    for (const wall of this.movingWalls) {
+      const y = wall.body.getPosition().y;
+      if (wall.direction > 0 && y >= wall.config.maxY) wall.direction = -1;
+      else if (wall.direction < 0 && y <= wall.config.minY) wall.direction = 1;
+    }
     if (this.status === 'running') this.time += FIXED_STEP;
 
     const position = this.body.getPosition();
@@ -922,6 +1009,7 @@ export class VehiclePhysics {
       } : null,
       windmillAngle: this.windmill?.getAngle() ?? null,
       windmillAngles: this.windmills.map(windmill => windmill.getAngle()),
+      movingWalls: this.movingWalls.map(wall => ({ x: wall.config.x, y: wall.body.getPosition().y })),
     };
   }
 }

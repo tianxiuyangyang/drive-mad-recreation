@@ -3,7 +3,7 @@ import { VehiclePhysics } from './physics.mjs';
 import { Circle } from './vendor/planck.mjs';
 
 const dt = 1/120;
-const game = new VehiclePhysics(5);
+const game = new VehiclePhysics(7);
 const config = game.course.gearTrap;
 function assertGates(active) {
   assert.equal(game.trapGates.length,2);
@@ -154,7 +154,7 @@ assert.equal(game.getState().secondTrap.phase,'idle');
 assert.equal(game.secondTrapGate.isActive(),false);
 
 // The second detector remains independent while the first gear is descending.
-const fallingCheck = new VehiclePhysics(5);
+const fallingCheck = new VehiclePhysics(7);
 fallingCheck.status = 'running';
 fallingCheck.trapElapsed = 10;
 fallingCheck.trapPhase = 'falling';

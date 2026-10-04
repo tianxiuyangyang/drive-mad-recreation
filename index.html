@@ -38,14 +38,16 @@
     <div class="music-copy"><strong>天气之子·幻</strong><small>TYPE D · MENU THEME</small></div>
    </div>
    <div class="level-panel">
-    <div class="level-panel-head"><span>选择关卡</span><small>1 / 6</small></div>
+    <div class="level-panel-head"><span>选择关卡</span><small>1 / 8</small></div>
     <div class="level-grid">
      <button class="level-card selected" id="level1" data-level="1"><span class="level-number">01</span><span class="level-name">FIRST GEAR</span><span class="level-desc">五段跨海飞坡</span><i>▶</i></button>
      <button class="level-card" id="level2" data-level="2"><span class="level-number">02</span><span class="level-name">RAMP UP</span><span class="level-desc">连续坡道挑战</span><i>▶</i></button>
      <button class="level-card" id="level3" data-level="3"><span class="level-number">03</span><span class="level-name">OPEN SEA</span><span class="level-desc">跨海飞越小岛</span><i>▶</i></button>
      <button class="level-card" id="level4" data-level="4"><span class="level-number">04</span><span class="level-name">ASCENDING PLANKS</span><span class="level-desc">喷气助推上升木板阵</span><i>▶</i></button>
-     <button class="level-card" id="level5" data-level="5"><span class="level-number">05</span><span class="level-name">JET TUNNEL</span><span class="level-desc">喷射穿墙挑战</span><i>▶</i></button>
-     <button class="level-card" id="level6" data-level="6"><span class="level-number">06</span><span class="level-name">GEAR GAUNTLET</span><span class="level-desc">三连巨型齿轮阵</span><i>▶</i></button>
+     <button class="level-card" id="level5" data-level="5"><span class="level-number">05</span><span class="level-name">JET GATES</span><span class="level-desc">三道半高墙洞</span><i>▶</i></button>
+     <button class="level-card" id="level6" data-level="6"><span class="level-number">06</span><span class="level-name">JET LIFT</span><span class="level-desc">第二道墙喷气助推</span><i>▶</i></button>
+     <button class="level-card" id="level7" data-level="7"><span class="level-number">07</span><span class="level-name">JET TUNNEL</span><span class="level-desc">喷射穿墙挑战</span><em class="level-tag">高难度</em><i>▶</i></button>
+     <button class="level-card" id="level8" data-level="8"><span class="level-number">08</span><span class="level-name">GEAR GAUNTLET</span><span class="level-desc">三连巨型齿轮阵</span><em class="level-tag">高难度</em><i>▶</i></button>
     </div>
     <button class="menu-start" id="menuStart"><span>开始第一关</span><b>→</b></button>
     <div class="skin-picker" aria-label="车辆皮肤">
@@ -62,11 +64,11 @@
    <div class="menu-foot"><span>ENTER 开始&nbsp; · &nbsp;← → / A D 驾驶</span><div class="menu-help"><button id="tutorialOpen" class="tutorial-open" type="button" aria-haspopup="dialog"><b aria-hidden="true">▶</b>承认自己是菜鸡就来看教学视频</button><span>保持车身平衡 · 安全到达终点</span></div></div>
   </section>
   <div id="tutorialDialog" class="tutorial-dialog" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle" hidden>
-   <div class="tutorial-heading"><div><small>通关教学 · 04 / 05 / 06</small><h2 id="tutorialTitle">承认自己是菜鸡就来看教学视频</h2></div><div class="tutorial-actions"><a id="tutorialDownload" class="tutorial-download" href="./assets/tutorials/level-4.mp4" download="第四关教学视频.mp4" aria-label="下载第四关教学视频" title="下载教学视频"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14"/></svg></a><button id="tutorialClose" type="button" aria-label="关闭教学视频">×</button></div></div>
+   <div class="tutorial-heading"><div><small>通关教学 · 04 / 07 / 08</small><h2 id="tutorialTitle">承认自己是菜鸡就来看教学视频</h2></div><div class="tutorial-actions"><a id="tutorialDownload" class="tutorial-download" href="./assets/tutorials/level-4.mp4" download="第四关教学视频.mp4" aria-label="下载第四关教学视频" title="下载教学视频"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14"/></svg></a><button id="tutorialClose" type="button" aria-label="关闭教学视频">×</button></div></div>
    <div class="tutorial-levels" aria-label="选择教学视频">
     <button type="button" data-tutorial="4" aria-pressed="true">第四关</button>
-    <button type="button" data-tutorial="5" aria-pressed="false">第五关</button>
-    <button type="button" data-tutorial="6" aria-pressed="false">第六关</button>
+    <button type="button" data-tutorial="7" aria-pressed="false">第七关</button>
+    <button type="button" data-tutorial="8" aria-pressed="false">第八关</button>
    </div>
    <video id="tutorialVideo" controls playsinline muted preload="none" aria-label="第四关教学视频"></video>
    <p id="tutorialError" role="status" hidden>视频暂时无法播放，请关闭后重试。</p>
@@ -83,6 +85,6 @@
    </div>
   </section>
  </main>
- <script type="module" src="./game.mjs?v=20261003-59"></script>
+ <script type="module" src="./game.mjs?v=20261004-73"></script>
 </body>
 </html>
